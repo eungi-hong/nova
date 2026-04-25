@@ -72,8 +72,28 @@ export function PageEffects() {
       },
       { threshold: 0.12, rootMargin: "0px 0px -10% 0px" },
     );
-    document.querySelectorAll(".reveal").forEach((el) => revealIO.observe(el));
-    cleanups.push(() => revealIO.disconnect());
+    const observeReveal = (el: Element) => {
+      if ((el as HTMLElement).dataset.revealObserved) return;
+      (el as HTMLElement).dataset.revealObserved = "1";
+      revealIO.observe(el);
+    };
+    document.querySelectorAll(".reveal").forEach(observeReveal);
+
+    const mo = new MutationObserver((mutations) => {
+      for (const m of mutations) {
+        m.addedNodes.forEach((node) => {
+          if (node.nodeType !== 1) return;
+          const el = node as HTMLElement;
+          if (el.classList?.contains("reveal")) observeReveal(el);
+          el.querySelectorAll?.(".reveal").forEach(observeReveal);
+        });
+      }
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
+    cleanups.push(() => {
+      revealIO.disconnect();
+      mo.disconnect();
+    });
 
     requestAnimationFrame(() => {
       splitTargets.forEach((el) => {

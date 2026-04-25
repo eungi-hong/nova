@@ -176,11 +176,10 @@ export function EntryEditor() {
         audio: audio.map((a) => ({ storage_path: a.storage_path, caption: a.caption })),
       });
       setIsDraft(finalDraft);
-      if (!entryId) {
-        navigate(`/edit/${id}`, { replace: true });
-      }
       if (publish === "publish") {
         navigate(`/@${profile.handle}/${finalSlug}`);
+      } else if (!entryId) {
+        navigate(`/edit/${id}`, { replace: true });
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save.");

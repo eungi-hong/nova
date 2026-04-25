@@ -98,7 +98,7 @@ export async function uploadPhoto(userId: string, file: File): Promise<string> {
     cacheControl: "3600",
     upsert: false,
   });
-  if (error) throw error;
+  if (error) throw new Error(error.message);
   return path;
 }
 
@@ -109,7 +109,7 @@ export async function uploadAudio(userId: string, file: File): Promise<string> {
     cacheControl: "3600",
     upsert: false,
   });
-  if (error) throw error;
+  if (error) throw new Error(error.message);
   return path;
 }
 
@@ -127,7 +127,7 @@ export async function isHandleAvailable(handle: string, excludeUserId?: string):
 export async function upsertProfile(profile: Partial<Profile> & { id: string }): Promise<void> {
   const payload = { ...profile, handle: profile.handle?.toLowerCase() };
   const { error } = await supabase.from("profiles").upsert(payload);
-  if (error) throw error;
+  if (error) throw new Error(error.message);
 }
 
 export interface SaveEntryInput {
@@ -172,14 +172,14 @@ export async function saveEntry(userId: string, input: SaveEntryInput): Promise<
   let entryId = input.id;
   if (entryId) {
     const { error } = await supabase.from("entries").update(entryPayload).eq("id", entryId);
-    if (error) throw error;
+    if (error) throw new Error(error.message);
   } else {
     const { data, error } = await supabase
       .from("entries")
-      .insert(entryPayload)
+      .upsert(entryPayload, { onConflict: "user_id,slug" })
       .select("id")
       .single();
-    if (error) throw error;
+    if (error) throw new Error(error.message);
     entryId = (data as { id: string }).id;
   }
 
@@ -215,17 +215,20 @@ export async function saveEntry(userId: string, input: SaveEntryInput): Promise<
     position: i,
   }));
 
-  await Promise.all([
-    sectionRows.length ? supabase.from("entry_sections").insert(sectionRows) : Promise.resolve(),
-    metaRows.length ? supabase.from("entry_meta").insert(metaRows) : Promise.resolve(),
-    photoRows.length ? supabase.from("entry_photos").insert(photoRows) : Promise.resolve(),
-    audioRows.length ? supabase.from("entry_audio").insert(audioRows) : Promise.resolve(),
+  const results = await Promise.all([
+    sectionRows.length ? supabase.from("entry_sections").insert(sectionRows) : null,
+    metaRows.length ? supabase.from("entry_meta").insert(metaRows) : null,
+    photoRows.length ? supabase.from("entry_photos").insert(photoRows) : null,
+    audioRows.length ? supabase.from("entry_audio").insert(audioRows) : null,
   ]);
+  for (const r of results) {
+    if (r && r.error) throw new Error(r.error.message);
+  }
 
   return entryId!;
 }
 
 export async function deleteEntry(entryId: string): Promise<void> {
   const { error } = await supabase.from("entries").delete().eq("id", entryId);
-  if (error) throw error;
+  if (error) throw new Error(error.message);
 }
