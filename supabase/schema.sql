@@ -14,6 +14,8 @@ create table if not exists public.profiles (
   created_at   timestamptz default now() not null
 );
 
+alter table public.profiles add column if not exists hero_photo_path text;
+
 create index if not exists profiles_handle_idx on public.profiles (handle);
 
 -- entries -----------------------------------------------------------------

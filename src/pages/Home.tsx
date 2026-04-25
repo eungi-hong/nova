@@ -41,14 +41,14 @@ export function Home() {
 
   return (
     <main className="home">
-      <p className="home__eyebrow reveal">a stage diary · for performing artists</p>
+      <p className="home__eyebrow reveal">NOVA · for performing artists</p>
       <h1 className="home__title reveal">
         every show<br />
         is over <em>too soon</em>.<br />
         write it down.
       </h1>
       <p className="home__lede reveal">
-        Stage Diary is a small archive for the rehearsal-floor residue, the photos friends sent afterwards, and whatever you can remember before it fades. Music, dance, theatre — log your shows with photos, recordings, and the words you only find on the walk home. Share your diary as a single link.
+        NOVA is a small archive for the rehearsal-floor residue, the photos friends sent afterwards, and whatever you can remember before it fades. Music, dance, theatre — log your shows with photos, recordings, and the words you only find on the walk home. Share your diary as a single link.
       </p>
 
       <div className="home__cta reveal">
@@ -88,7 +88,7 @@ export function Home() {
       )}
 
       <footer className="page-foot" style={{ maxWidth: "100%" }}>
-        <span>stage diary · {new Date().getFullYear()}</span>
+        <span>NOVA · {new Date().getFullYear()}</span>
         <span>↓ scroll · share via link</span>
       </footer>
     </main>

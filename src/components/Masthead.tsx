@@ -9,7 +9,7 @@ export function Masthead() {
     <nav className="app-mast">
       <div className="app-mast__brand">
         <Link to="/">
-          stage <em>diary</em>
+          <em>NOVA</em>
         </Link>
       </div>
       <div className="app-mast__center">

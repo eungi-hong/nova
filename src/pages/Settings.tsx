@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../lib/auth";
-import { isHandleAvailable, upsertProfile } from "../lib/api";
+import {
+  isHandleAvailable,
+  publicPhotoUrl,
+  updateProfile,
+  uploadPhoto,
+} from "../lib/api";
 import { slugify } from "../lib/util";
 
 export function Settings() {
@@ -11,6 +16,7 @@ export function Settings() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [heroUploading, setHeroUploading] = useState(false);
 
   useEffect(() => {
     if (!profile) return;
@@ -20,6 +26,38 @@ export function Settings() {
   }, [profile]);
 
   if (!user || !profile) return null;
+
+  const onHeroUpload = async (file: File | undefined) => {
+    if (!file) return;
+    setError(null);
+    setMessage(null);
+    setHeroUploading(true);
+    try {
+      const path = await uploadPhoto(user.id, file);
+      await updateProfile(user.id, { hero_photo_path: path });
+      await refreshProfile();
+      setMessage("hero photo updated.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed.");
+    } finally {
+      setHeroUploading(false);
+    }
+  };
+
+  const onHeroRemove = async () => {
+    setError(null);
+    setMessage(null);
+    setHeroUploading(true);
+    try {
+      await updateProfile(user.id, { hero_photo_path: null });
+      await refreshProfile();
+      setMessage("hero photo removed.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to remove.");
+    } finally {
+      setHeroUploading(false);
+    }
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,8 +74,7 @@ export function Settings() {
           return;
         }
       }
-      await upsertProfile({
-        id: user.id,
+      await updateProfile(user.id, {
         handle: cleaned,
         display_name: displayName.trim() || cleaned,
         bio: bio.trim() || null,
@@ -80,6 +117,43 @@ export function Settings() {
           <span className="field__label">bio</span>
           <textarea className="textarea" value={bio} onChange={(e) => setBio(e.target.value)} maxLength={240} />
         </label>
+
+        <div className="field">
+          <span className="field__label">hero photo</span>
+          {profile.hero_photo_path ? (
+            <div style={{ display: "flex", gap: 16, alignItems: "flex-start", marginBottom: 12 }}>
+              <img
+                src={publicPhotoUrl(profile.hero_photo_path)}
+                alt="hero"
+                style={{ width: 180, height: 120, objectFit: "cover", border: "1px solid var(--line)" }}
+              />
+              <button
+                type="button"
+                className="btn btn--small btn--ghost"
+                disabled={heroUploading}
+                onClick={onHeroRemove}
+              >
+                remove
+              </button>
+            </div>
+          ) : null}
+          <label className="editor__upload">
+            <input
+              type="file"
+              accept="image/*"
+              disabled={heroUploading}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                e.target.value = "";
+                onHeroUpload(file);
+              }}
+            />
+            {heroUploading ? "uploading…" : profile.hero_photo_path ? "+ replace photo" : "+ upload photo"}
+          </label>
+          <span className="field__hint">
+            shown on the cover of /@{profile.handle}. falls back to your first entry's first photo when empty.
+          </span>
+        </div>
 
         <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
           <button className="btn btn--accent" disabled={saving}>{saving ? "saving…" : "save changes"}</button>

@@ -125,9 +125,33 @@ export async function isHandleAvailable(handle: string, excludeUserId?: string):
 }
 
 export async function upsertProfile(profile: Partial<Profile> & { id: string }): Promise<void> {
-  const payload = { ...profile, handle: profile.handle?.toLowerCase() };
+  const payload: Record<string, unknown> = { id: profile.id };
+  for (const [k, v] of Object.entries(profile)) {
+    if (v === undefined) continue;
+    payload[k] = k === "handle" && typeof v === "string" ? v.toLowerCase() : v;
+  }
   const { error } = await supabase.from("profiles").upsert(payload);
   if (error) throw new Error(error.message);
+}
+
+export async function updateProfile(
+  id: string,
+  patch: Partial<Profile>,
+): Promise<void> {
+  const payload: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(patch)) {
+    if (v === undefined) continue;
+    payload[k] = k === "handle" && typeof v === "string" ? v.toLowerCase() : v;
+  }
+  const { data, error } = await supabase
+    .from("profiles")
+    .update(payload)
+    .eq("id", id)
+    .select("id");
+  if (error) throw new Error(error.message);
+  if (!data || data.length === 0) {
+    throw new Error("No profile found for the current user — please finish onboarding first.");
+  }
 }
 
 export interface SaveEntryInput {

@@ -58,10 +58,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    if (!user) {
-      setProfile(null);
-      return;
-    }
+    setProfile(null);
+    if (!user) return;
     fetchProfile(user.id);
   }, [user?.id]);
 

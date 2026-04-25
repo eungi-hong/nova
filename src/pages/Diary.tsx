@@ -41,7 +41,9 @@ export function Diary() {
       const ents = await getEntriesForProfile(p.id, user?.id === p.id);
       if (cancelled) return;
       setEntries(ents);
-      if (ents.length) {
+      if (p.hero_photo_path) {
+        setHeroPhoto(publicPhotoUrl(p.hero_photo_path));
+      } else if (ents.length) {
         const { data: photos } = await supabase
           .from("entry_photos")
           .select("*")
@@ -153,7 +155,7 @@ export function Diary() {
 
       <footer className="page-foot">
         <span>{displayName} · {new Date().getFullYear()}</span>
-        <span>↓ scroll · stage diary</span>
+        <span>↓ scroll · NOVA</span>
       </footer>
     </main>
   );

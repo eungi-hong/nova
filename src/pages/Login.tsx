@@ -68,7 +68,7 @@ export function Login() {
     magic: {
       title: "welcome in.",
       lede:
-        "Stage Diary uses magic links — enter your email and we'll send you a one-time sign-in link. No password required.",
+        "NOVA uses magic links — enter your email and we'll send you a one-time sign-in link. No password required.",
       cta: "send magic link →",
     },
     signin: {
